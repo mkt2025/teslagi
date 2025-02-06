@@ -80,7 +80,7 @@
       <li>
         <span class="lead"><b>Reciter</b></span>
         <select id="reciter" onchange="updateAudio()">
-          <option value="mtrod">Abdullah Al Mathrud</option>
+          <option value="almtrod">Abdullah Al Mathrud</option>
           <option value="fatih-seferagic">Fatih Seferagic</option>
           <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal (192kbps)</option>
           <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Murattal (64kbps)</option>
@@ -238,7 +238,7 @@
     function updateAudio() {
       const reciter = document.getElementById('reciter').value;
       const chapter = chapterSelect.value;
-      const audioURL = `https://mp3.yumnastudio.com/download/${reciter}/${pad(chapter)}.mp3`;
+      const audioURL = `https://mp3.yunastudio.com/download/${reciter}/${pad(chapter)}.mp3`;
 
       // Menampilkan efek loading
       loadingIndicator.style.display = 'block';
