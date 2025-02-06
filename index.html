@@ -89,7 +89,7 @@
     </audio>
 
     <div class="autoplay-container">
-      <input type="checkbox" id="autoplay" onchange="toggleAutoplay()" checked>
+      <input type="checkbox" id="autoplay" checked>
       <label for="autoplay">Auto Play</label>
     </div>
 
@@ -111,24 +111,32 @@
       const chapter = chapterSelect.value;
       const server = reciterSelect.options[reciterSelect.selectedIndex].dataset.server;
       const audioURL = `https://${server}.mp3quran.net/download/${reciter}/${chapter}.mp3`;
+      
       loadingIndicator.style.display = 'block';
       audioSource.src = audioURL;
       audioLink.href = audioURL;
       audioPlayer.load();
-      audioPlayer.addEventListener('canplay', () => {
+      
+      audioPlayer.oncanplay = () => {
         loadingIndicator.style.display = 'none';
-      });
-      if (autoplayCheckbox.checked) {
-        audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
-      }
+        if (autoplayCheckbox.checked) {
+          audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
+        }
+      };
     }
 
-    function toggleAutoplay() {
-      if (autoplayCheckbox.checked) {
-        audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
+    audioPlayer.onended = () => {
+      playNextChapter();
+    };
+
+    function playNextChapter() {
+      let currentIndex = chapterSelect.selectedIndex;
+      if (currentIndex < chapterSelect.options.length - 1) {
+        chapterSelect.selectedIndex = currentIndex + 1;
       } else {
-        audioPlayer.pause();
+        chapterSelect.selectedIndex = 0;
       }
+      updateAudio();
     }
   </script>
 </body>
