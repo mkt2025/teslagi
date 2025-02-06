@@ -1,77 +1,211 @@
-<html>
-  <head>
-    <script
-      type="text/javascript"
-      src="https://www.gstatic.com/charts/loader.js"
-    ></script>
-    <script type="text/javascript">
-      google.charts.load("current", {
-        packages: ["corechart", "bar", "table"],
-      });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Audio Player</title>
+  <!-- Video.js CSS -->
+  <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h3 {
+      text-align: center;
+      color: #333;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    .lead {
+      width: 100px;
+      display: inline-block;
+      font-weight: bold;
+    }
+    select {
+      padding: 5px;
+      width: 200px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .loading img {
+      width: 100px;
+      height: 100px;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    /* Styling untuk AutoPlay Checkbox */
+    .autoplay-container {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .autoplay-container input {
+      margin-right: 10px;
+    }
+    /* Custom Video.js Player Styling */
+    .video-js {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    .vjs-control-bar {
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+    .vjs-play-control, .vjs-volume-panel, .vjs-progress-control, .vjs-time-control {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Quran Audio Player</h1>
 
-      fetch(
-        "https://script.google.com/macros/s/AKfycbz1teyXYxbb1vz4Hg1BASUNeONHRGHxuJ_NS9sKJM8YajxQ-1UYSh8tQyzqv_6vZkGJ/exec?sheetName=Sheet1",
-        {
-          redirect: "follow",
-        }
-      )
-        .then((response) => response.text())
-        .then((result) => {
-          sheetData = JSON.parse(result);
-          drawChart(sheetData);
-        })
-        .catch((error) => console.log("error", error));
+    <ul>
+      <li>
+        <span class="lead"><b>Reciter</b></span>
+        <select id="reciter" onchange="updateAudio()">
+          <option value="mtrod">Abdullah Al Mathrud</option>
+          <option value="fatih-seferagic">Fatih Seferagic</option>
+          <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal (192kbps)</option>
+          <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Murattal (64kbps)</option>
+        </select>
+      </li>
+      <li>
+        <span class="lead"><b>Chapter</b></span>
+        <select id="chapter" onchange="updateAudio()">
+          <option value="001">1: Al-Faatiha</option>
+          <option value="002">2: Al-Baqara</option>
+          <option value="003">3: Aal-i-Imraan</option>
+        </select>
+      </li>
+    </ul>
 
-      function drawChart(chartData) {
-        var data = google.visualization.arrayToDataTable(chartData);
+    <h3>Preview:</h3>
+    <div class="loading" id="loadingIndicator">
+      <img src="https://i.imgur.com/r1vjyKd.gif" alt="Loading..."> <!-- Sesuaikan dengan nama file GIF -->
+    </div>
+    <!-- Video.js Player -->
+    <audio id="audioPlayer" class="video-js vjs-default-skin" controls preload="auto">
+      <source id="audioSource" src="" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
 
-        var options = {
-          chart: {
-            title: "Company Performance",
-            subtitle: "Sales, Expenses, and Profit: 2014-2017",
-          },
-          bars: "horizontal",
-        };
+    <div class="autoplay-container">
+      <input type="checkbox" id="autoplay" onchange="toggleAutoplay()" checked>
+      <label for="autoplay">Auto Play</label>
+    </div>
 
-        var chart = new google.charts.Bar(
-          document.getElementById("barchart_material")
-        );
+    <h3>Download:</h3>
+    <ul>
+      <li><a id="audioLink" href="" download>Download Audio</a></li>
+    </ul>
+  </div>
 
-        chart.draw(data, google.charts.Bar.convertOptions(options));
+  <!-- Video.js Script -->
+  <script src="https://vjs.zencdn.net/7.15.4/video.min.js"></script>
+  <script>
+    const audioPlayer = videojs('audioPlayer', {
+      controls: true,
+      autoplay: false,
+      preload: 'auto'
+    });
+
+    const audioSource = document.getElementById('audioSource');
+    const audioLink = document.getElementById('audioLink');
+    const autoplayCheckbox = document.getElementById('autoplay');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const chapterSelect = document.getElementById('chapter');
+
+    function updateAudio() {
+      const reciter = document.getElementById('reciter').value;
+      const chapter = chapterSelect.value;
+      const audioURL = `https://server8.mp3quran.net/download/${reciter}/${pad(chapter)}.mp3`;
+
+      // Menampilkan efek loading
+      loadingIndicator.style.display = 'block';
+
+      // Update audio source
+      audioSource.src = audioURL;
+      audioLink.href = audioURL;
+      audioPlayer.src({ type: 'audio/mpeg', src: audioURL });
+      audioPlayer.load();
+
+      // Memastikan autoplay tetap berjalan
+      if (autoplayCheckbox.checked) {
+        audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
+      }
+    }
+
+    function pad(number) {
+      return number.toString().padStart(3, '0');
+    }
+
+    function toggleAutoplay() {
+      if (autoplayCheckbox.checked) {
+        audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
+      } else {
+        audioPlayer.pause();
+      }
+    }
+
+    // Event Listener untuk menangani efek loading
+    audioPlayer.on('waiting', () => {
+      loadingIndicator.style.display = 'block'; // Tampilkan loading saat audio belum siap
+    });
+
+    audioPlayer.on('playing', () => {
+      loadingIndicator.style.display = 'none'; // Hilangkan loading saat audio mulai diputar
+    });
+
+    audioPlayer.on('canplay', () => {
+      loadingIndicator.style.display = 'none'; // Pastikan loading juga hilang setelah audio siap dimainkan
+    });
+
+    // Event Listener untuk auto-play ke chapter berikutnya
+    audioPlayer.on('ended', () => {
+      if (autoplayCheckbox.checked) {
+        playNextChapter();
+      }
+    });
+
+    function playNextChapter() {
+      let currentIndex = chapterSelect.selectedIndex;
+      let totalOptions = chapterSelect.options.length;
+
+      if (currentIndex < totalOptions - 1) {
+        chapterSelect.selectedIndex = currentIndex + 1; // Pindah ke chapter berikutnya
+      } else {
+        chapterSelect.selectedIndex = 0; // Kembali ke awal jika sudah di akhir
       }
 
-      fetch(
-        "https://script.google.com/macros/s/AKfycbz1teyXYxbb1vz4Hg1BASUNeONHRGHxuJ_NS9sKJM8YajxQ-1UYSh8tQyzqv_6vZkGJ/exec?sheetName=Sheet2",
-        {
-          redirect: "follow",
-        }
-      )
-        .then((response) => response.text())
-        .then((result) => {
-          sheetData = JSON.parse(result);
-          drawTable(sheetData);
-        })
-        .catch((error) => console.log("error", error));
-
-      function drawTable(chartData) {
-        var data = google.visualization.arrayToDataTable(chartData);
-
-        var options = {
-          showRowNumber: true,
-          width: "80%",
-          height: "90%",
-        };
-
-        var table = new google.visualization.Table(
-          document.getElementById("table_div")
-        );
-
-        table.draw(data, options);
-      }
-    </script>
-  </head>
-  <body>
-    <div id="barchart_material" style="width: 900px; height: 500px"></div>
-    <div id="table_div" style="margin-top: 40px"></div>
-  </body>
+      updateAudio(); // Putar audio chapter baru
+    }
+  </script>
+</body>
 </html>
