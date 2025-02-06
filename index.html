@@ -10,24 +10,30 @@
       background-color: #f4f4f4;
       margin: 0;
       padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .container {
-      max-width: 800px;
-      margin: 20px auto;
+      width: 90%;
+      max-width: 500px;
       padding: 20px;
       background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
     }
     h1, h3 {
-      text-align: center;
       color: #333;
     }
-    select {
-      padding: 5px;
-      width: 200px;
-      border-radius: 4px;
+    select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
       border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
     }
     audio {
       width: 100%;
@@ -39,15 +45,14 @@
       margin-top: 10px;
     }
     .loading img {
-      width: 100px;
+      width: 80px;
     }
     .autoplay-container {
       display: flex;
+      justify-content: center;
       align-items: center;
+      gap: 10px;
       margin-top: 10px;
-    }
-    .autoplay-container input {
-      margin-right: 10px;
     }
   </style>
 </head>
@@ -55,29 +60,24 @@
   <div class="container">
     <h1>Quran Audio Player</h1>
 
-    <ul>
-      <li>
-        <b>Reciter</b>
-        <select id="reciter" onchange="updateAudio()">
-          <option value="mtrod" data-server="server8">Abdullah Al Mathrud</option>
-          <option value="a_ahmed" data-server="server11">Abdulaziz alahmad</option>
-          <option value="aloosi" data-server="server6">Abdulrahman Aloosi</option>
-          <option value="basit" data-server="server7">Abdul Basith Abdul Shamad</option>
-        </select>
-      </li>
-      <li>
-        <b>Chapter</b>
-        <select id="chapter" onchange="updateAudio()">
-          <option value="001">1: Al-Faatiha</option>
-          <option value="002">2: Al-Baqara</option>
-          <option value="003">3: Aal-i-Imraan</option>
-          <option value="004">4: An-Nisaa</option>
-          <option value="005">5: Al-Maaida</option>
-          <option value="006">6: Al-An'aam</option>
-          <option value="007">7: Al-A'raaf</option>
-        </select>
-      </li>
-    </ul>
+    <label for="reciter"><b>Reciter</b></label>
+    <select id="reciter" onchange="updateAudio()">
+      <option value="mtrod" data-server="server8">Abdullah Al Mathrud</option>
+      <option value="a_ahmed" data-server="server11">Abdulaziz alahmad</option>
+      <option value="aloosi" data-server="server6">Abdulrahman Aloosi</option>
+      <option value="basit" data-server="server7">Abdul Basith Abdul Shamad</option>
+    </select>
+
+    <label for="chapter"><b>Chapter</b></label>
+    <select id="chapter" onchange="updateAudio()">
+      <option value="001">1: Al-Faatiha</option>
+      <option value="002">2: Al-Baqara</option>
+      <option value="003">3: Aal-i-Imraan</option>
+      <option value="004">4: An-Nisaa</option>
+      <option value="005">5: Al-Maaida</option>
+      <option value="006">6: Al-An'aam</option>
+      <option value="007">7: Al-A'raaf</option>
+    </select>
 
     <h3>Preview:</h3>
     <div class="loading" id="loadingIndicator">
@@ -94,9 +94,7 @@
     </div>
 
     <h3>Download:</h3>
-    <ul>
-      <li><a id="audioLink" href="" download>Download Audio</a></li>
-    </ul>
+    <a id="audioLink" href="" download>Download Audio</a>
   </div>
 
   <script>
@@ -111,24 +109,15 @@
     function updateAudio() {
       const reciter = reciterSelect.value;
       const chapter = chapterSelect.value;
-      const server = reciterSelect.options[reciterSelect.selectedIndex].dataset.server; // Ambil server dari atribut data-server
-
+      const server = reciterSelect.options[reciterSelect.selectedIndex].dataset.server;
       const audioURL = `https://${server}.mp3quran.net/download/${reciter}/${chapter}.mp3`;
-
-      // Tampilkan efek loading
       loadingIndicator.style.display = 'block';
-
-      // Update audio source
       audioSource.src = audioURL;
       audioLink.href = audioURL;
       audioPlayer.load();
-
-      // Sembunyikan loading setelah audio siap diputar
       audioPlayer.addEventListener('canplay', () => {
         loadingIndicator.style.display = 'none';
       });
-
-      // Jika autoplay diaktifkan, langsung putar audio
       if (autoplayCheckbox.checked) {
         audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
       }
@@ -140,26 +129,6 @@
       } else {
         audioPlayer.pause();
       }
-    }
-
-    // Auto-play ke chapter berikutnya jika audio selesai
-    audioPlayer.addEventListener('ended', () => {
-      if (autoplayCheckbox.checked) {
-        playNextChapter();
-      }
-    });
-
-    function playNextChapter() {
-      let currentIndex = chapterSelect.selectedIndex;
-      let totalOptions = chapterSelect.options.length;
-
-      if (currentIndex < totalOptions - 1) {
-        chapterSelect.selectedIndex = currentIndex + 1;
-      } else {
-        chapterSelect.selectedIndex = 0;
-      }
-
-      updateAudio();
     }
   </script>
 </body>
